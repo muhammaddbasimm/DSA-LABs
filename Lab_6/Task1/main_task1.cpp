@@ -35,6 +35,14 @@ void showEvalPostfix(string expr) {
     cout << endl;
 }
 
+// prints a prefix expression and its answer
+void showEvalPrefix(string expr) {
+    cout << "Prefix: " << expr << endl;
+    double result = evaluate_prefix(expr);
+    cout << "Answer: " << result << endl;
+    cout << endl;
+}
+
 int main() {
     cout << "--- infix to postfix ---" << endl;
     showPostfix("A+B*C");
@@ -89,6 +97,20 @@ int main() {
 
     try {
         showEvalPostfix("4 0 /");
+    } catch (exception& e) {
+        cout << "Error caught: " << e.what() << endl;
+    }
+
+    cout << endl;
+    cout << "--- evaluate prefix ---" << endl;
+    showEvalPrefix("+ 2 * 3 4");
+    showEvalPrefix("+ 12 * 3 - 4 1");
+    showEvalPrefix("- / 10 2 3");
+    showEvalPrefix("^ 2 ^ 3 2");
+    showEvalPrefix("* 5.5 2");
+
+    try {
+        showEvalPrefix("/ 4 0");
     } catch (exception& e) {
         cout << "Error caught: " << e.what() << endl;
     }

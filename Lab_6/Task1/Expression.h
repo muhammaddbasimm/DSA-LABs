@@ -249,4 +249,30 @@ double evaluate_postfix(string expr) {
     return st.pop();
 }
 
+// evaluates a prefix expression (numbers only, with spaces)
+double evaluate_prefix(string expr) {
+    string tokens[200];
+    int n = splitTokens(expr, tokens, 200);
+    Stack<double> st;
+
+    // go from the last token to the first
+    for (int i = n - 1; i >= 0; i--) {
+        if (isOperatorToken(tokens[i])) {
+            if (st.size() < 2) {
+                throw runtime_error("Invalid prefix expression");
+            }
+            double a = st.pop();
+            double b = st.pop();
+            st.push(calculate(a, b, tokens[i][0]));
+        } else {
+            st.push(stod(tokens[i]));
+        }
+    }
+
+    if (st.size() != 1) {
+        throw runtime_error("Invalid prefix expression");
+    }
+    return st.pop();
+}
+
 #endif
