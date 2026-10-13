@@ -26,16 +26,18 @@ int precedence(char c) {
 }
 
 // should the operator on the stack be moved to the output first?
-bool shouldPop(char top, char current) {
+// forPrefix is true when we are converting to prefix (reversed scan)
+bool shouldPop(char top, char current, bool forPrefix) {
     if (precedence(top) > precedence(current)) return true;
-    // for equal priority, pop only if the operator is not ^
-    // (^ is calculated right to left)
-    if (precedence(top) == precedence(current) && current != '^') return true;
+    if (precedence(top) == precedence(current)) {
+        if (forPrefix) return current == '^';
+        return current != '^';
+    }
     return false;
 }
 
-// converts an infix expression to postfix
-string infix_to_postfix(string expr) {
+// does the main conversion work (used for both postfix and prefix)
+string convertToPostfix(string expr, bool forPrefix) {
     Stack<char> st;
     string result = "";
     int i = 0;
@@ -73,7 +75,7 @@ string infix_to_postfix(string expr) {
             st.pop();   // remove the (
         } else if (isOperator(c)) {
             // move higher priority operators to the output first
-            while (!st.isEmpty() && isOperator(st.peek()) && shouldPop(st.peek(), c)) {
+            while (!st.isEmpty() && isOperator(st.peek()) && shouldPop(st.peek(), c, forPrefix)) {
                 result += st.pop();
                 result += ' ';
             }
@@ -99,6 +101,59 @@ string infix_to_postfix(string expr) {
         result.pop_back();
     }
     return result;
+}
+
+// the postfix function the lab asks for (uses the normal rules)
+string infix_to_postfix(string expr) {
+    return convertToPostfix(expr, false);
+}
+
+// reverses the order of the tokens (a number like 12 stays 12)
+// if swapBrackets is true, ( becomes ) and ) becomes (
+string reverseTokens(string expr, bool swapBrackets) {
+    Stack<string> st;
+    int i = 0;
+
+    while (i < expr.length()) {
+        char c = expr[i];
+
+        if (c == ' ') {
+            i++;
+            continue;
+        }
+
+        string token = "";
+        if (isOperand(c)) {
+            while (i < expr.length() && isOperand(expr[i])) {
+                token += expr[i];
+                i++;
+            }
+        } else {
+            token = string(1, c);
+            if (swapBrackets && c == '(') token = ")";
+            else if (swapBrackets && c == ')') token = "(";
+            i++;
+        }
+        st.push(token);
+    }
+
+    // popping the stack gives the tokens in reverse order
+    string result = "";
+    while (!st.isEmpty()) {
+        result += st.pop();
+        result += ' ';
+    }
+    if (!result.empty()) {
+        result.pop_back();
+    }
+    return result;
+}
+
+// converts an infix expression to prefix
+string infix_to_prefix(string expr) {
+    string reversed = reverseTokens(expr, true);
+    string postfix = convertToPostfix(reversed, true);
+    return reverseTokens(postfix, false);
 }
 
 #endif
