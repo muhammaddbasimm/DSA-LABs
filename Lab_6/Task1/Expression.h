@@ -3,6 +3,7 @@
 
 #include <string>
 #include <stdexcept>
+#include <cmath>
 #include "Stack.h"
 using namespace std;
 
@@ -154,6 +155,98 @@ string infix_to_prefix(string expr) {
     string reversed = reverseTokens(expr, true);
     string postfix = convertToPostfix(reversed, true);
     return reverseTokens(postfix, false);
+}
+
+// splits a string into tokens (separated by spaces)
+// the tokens are stored in the array and the count is returned
+int splitTokens(string expr, string tokens[], int maxTokens) {
+    int count = 0;
+    string current = "";
+
+    for (int i = 0; i <= expr.length(); i++) {
+        if (i == expr.length() || expr[i] == ' ') {
+            if (current != "") {
+                if (count == maxTokens) {
+                    throw runtime_error("Expression is too long");
+                }
+                tokens[count] = current;
+                count++;
+                current = "";
+            }
+        } else {
+            current += expr[i];
+        }
+    }
+    return count;
+}
+
+// a token is an operator if it is a single operator character
+bool isOperatorToken(string t) {
+    return t.length() == 1 && isOperator(t[0]);
+}
+
+// converts a postfix expression (with spaces) to infix
+string postfix_to_infix(string expr) {
+    string tokens[200];
+    int n = splitTokens(expr, tokens, 200);
+    Stack<string> st;
+
+    for (int i = 0; i < n; i++) {
+        if (isOperatorToken(tokens[i])) {
+            if (st.size() < 2) {
+                throw runtime_error("Invalid postfix expression");
+            }
+            string b = st.pop();
+            string a = st.pop();
+            st.push("(" + a + tokens[i] + b + ")");
+        } else {
+            st.push(tokens[i]);
+        }
+    }
+
+    if (st.size() != 1) {
+        throw runtime_error("Invalid postfix expression");
+    }
+    return st.pop();
+}
+
+// does one calculation: a op b
+double calculate(double a, double b, char op) {
+    if (op == '+') return a + b;
+    if (op == '-') return a - b;
+    if (op == '*') return a * b;
+    if (op == '/') {
+        if (b == 0) {
+            throw runtime_error("Division by zero");
+        }
+        return a / b;
+    }
+    return pow(a, b);   // the only one left is ^
+}
+
+// evaluates a postfix expression (numbers only, with spaces)
+double evaluate_postfix(string expr) {
+    string tokens[200];
+    int n = splitTokens(expr, tokens, 200);
+    Stack<double> st;
+
+    for (int i = 0; i < n; i++) {
+        if (isOperatorToken(tokens[i])) {
+            if (st.size() < 2) {
+                throw runtime_error("Invalid postfix expression");
+            }
+            double b = st.pop();
+            double a = st.pop();
+            st.push(calculate(a, b, tokens[i][0]));
+        } else {
+            st.push(stod(tokens[i]));   // turn the text into a number
+        }
+    }
+
+    if (st.size() != 1) {
+        throw runtime_error("Invalid postfix expression");
+    }
+    return st.pop();
 }
 
 #endif
